@@ -8,6 +8,34 @@ const API_URL = () => {
 };
 let html5QrcodeScanner = null;
 
+// Category Dictionary (EN -> ES)
+const categoryDict = {
+    'Fiction': 'Ficción',
+    'Juvenile Fiction': 'Ficción Juvenil',
+    'Young Adult Fiction': 'Ficción para Jóvenes',
+    'Fantasy': 'Fantasía',
+    'Science Fiction': 'Ciencia Ficción',
+    'History': 'Historia',
+    'Biography & Autobiography': 'Biografía',
+    'Science': 'Ciencia',
+    'Education': 'Educación',
+    'Computers': 'Computación',
+    'Business & Economics': 'Negocios',
+    'Art': 'Arte',
+    'Religion': 'Religión',
+    'Philosophy': 'Filosofía',
+    'Psychology': 'Psicología'
+};
+
+function translateCategory(catStr) {
+    if(!catStr) return '';
+    let result = catStr;
+    Object.keys(categoryDict).forEach(en => {
+        result = result.replace(new RegExp(en, 'gi'), categoryDict[en]);
+    });
+    return result;
+}
+
 // Navigation
 function navTo(targetView) {
     // Stop scanner if leaving scan view
@@ -88,7 +116,7 @@ async function fetchBookInfo(isbn) {
             titleInput.value = data.titulo || '';
             authorInput.value = data.autor || '';
             publisherInput.value = data.editorial || '';
-            categoryInput.value = data.categoria || '';
+            categoryInput.value = translateCategory(data.categoria) || '';
             shelfInput.value = data.estanteria || '';
             urlInput.value = data.urlPortada || '';
         } else {
@@ -299,15 +327,36 @@ async function loadDashboardStats() {
         }
         if (prestamosRes.ok) {
             const prestamos = await prestamosRes.json();
-            document.getElementById('stat-loans').innerText = prestamos.length;
+            document.getElementById('stat-books').innerText = '0';
         }
-    } catch(e) {
-        console.warn("Failed to load stats", e);
+    } catch (error) {
+        console.error("Error loading stats", error);
     }
 }
 
-// Initial load
-window.addEventListener('DOMContentLoaded', () => {
-    // Attempt to load stats on start (assuming default URL works)
+// Theme Toggle
+function initTheme() {
+    const savedTheme = localStorage.getItem('theme');
+    const prefersDark = window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches;
+    
+    if (savedTheme === 'dark' || (!savedTheme && prefersDark)) {
+        document.documentElement.classList.add('dark-theme');
+        document.getElementById('theme-icon').className = 'ph ph-sun';
+    }
+}
+
+document.getElementById('theme-toggle').addEventListener('click', () => {
+    document.documentElement.classList.toggle('dark-theme');
+    const isDark = document.documentElement.classList.contains('dark-theme');
+    localStorage.setItem('theme', isDark ? 'dark' : 'light');
+    
+    const icon = document.getElementById('theme-icon');
+    icon.className = isDark ? 'ph ph-sun' : 'ph ph-moon';
+});
+
+// Initialize on load
+document.addEventListener('DOMContentLoaded', () => {
+    initTheme();
     loadDashboardStats();
+    navTo('home');
 });

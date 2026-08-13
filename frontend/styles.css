@@ -11,6 +11,14 @@
     --error: #ef4444;
 }
 
+:root.dark-theme {
+    --bg-color: #0f172a;
+    --text-main: #f8fafc;
+    --text-muted: #94a3b8;
+    --card-bg: rgba(30, 41, 59, 0.8);
+    --glass-border: rgba(255, 255, 255, 0.1);
+}
+
 * {
     margin: 0;
     padding: 0;
@@ -21,12 +29,39 @@
 
 body {
     background-color: var(--bg-color);
-    background-image: radial-gradient(circle at top right, #e0e7ff 0%, transparent 40%),
-                      radial-gradient(circle at bottom left, #dbeafe 0%, transparent 40%);
-    background-attachment: fixed;
     color: var(--text-main);
     min-height: 100vh;
-    padding-bottom: 80px; /* Space for bottom nav */
+    display: flex;
+    flex-direction: column;
+    padding-bottom: 70px; /* Space for bottom nav */
+    transition: background-color 0.3s ease, color 0.3s ease;
+}
+
+/* App Header */
+.app-header {
+    background: var(--card-bg);
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
+    border-bottom: 1px solid var(--glass-border);
+    padding: 1rem 1.5rem;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    position: sticky;
+    top: 0;
+    z-index: 10;
+}
+
+.app-header .logo {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    color: var(--primary);
+}
+
+.app-header h1 {
+    font-size: 1.5rem;
+    font-weight: 700;
 }
 
 /* Glassmorphism Classes */
