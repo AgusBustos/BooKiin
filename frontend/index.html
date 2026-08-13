@@ -133,9 +133,14 @@
                         <label for="loan-dni">DNI del Socio</label>
                         <input type="number" id="loan-dni" required>
                     </div>
+                    <div class="form-group" style="position: relative;">
+                        <label for="loan-book-search">Buscar Libro</label>
+                        <input type="text" id="loan-book-search" placeholder="Escribe el título..." autocomplete="off">
+                        <div id="loan-book-results" class="autocomplete-results hidden"></div>
+                    </div>
                     <div class="form-group">
-                        <label for="loan-ejemplar">ID del Ejemplar</label>
-                        <input type="number" id="loan-ejemplar" required>
+                        <label for="loan-ejemplar">ID del Ejemplar (Autocompletado)</label>
+                        <input type="number" id="loan-ejemplar" required readonly placeholder="Selecciona un libro arriba" style="background:var(--bg-color); cursor:not-allowed;">
                     </div>
                     <button type="submit" class="primary-btn mt-2">Prestar Libro</button>
                     <div id="loan-msg" class="hidden mt-2"></div>

@@ -63,6 +63,7 @@ function navTo(targetView) {
         loadInventory();
     } else if (targetView === 'loans') {
         loadActiveLoans();
+        initLoanSearch();
     }
 }
 
@@ -267,6 +268,76 @@ async function loadActiveLoans() {
         listDiv.innerHTML = '<p style="color:var(--error)">Error cargando préstamos.</p>';
     }
 }
+
+// Book Search for Loans
+let allBooksForSearch = [];
+
+async function initLoanSearch() {
+    try {
+        const response = await fetch(`${API_URL()}/libros`);
+        if (response.ok) {
+            allBooksForSearch = await response.json();
+        }
+    } catch(e) {
+        console.warn("Failed to load books for search");
+    }
+}
+
+document.getElementById('loan-book-search').addEventListener('input', (e) => {
+    const q = e.target.value.toLowerCase();
+    const resultsDiv = document.getElementById('loan-book-results');
+    
+    if (q.length < 2) {
+        resultsDiv.classList.add('hidden');
+        return;
+    }
+    
+    const matches = allBooksForSearch.filter(b => b.titulo.toLowerCase().includes(q) || (b.autor && b.autor.toLowerCase().includes(q)));
+    
+    if (matches.length === 0) {
+        resultsDiv.innerHTML = '<div class="autocomplete-item" style="color:var(--text-muted); cursor:default;">No se encontraron libros</div>';
+    } else {
+        resultsDiv.innerHTML = matches.slice(0, 5).map(b => `
+            <div class="autocomplete-item" onclick="selectBookForLoan('${b.isbn}', '${b.titulo.replace(/'/g, "\\'")}')">
+                <strong>${b.titulo}</strong> <br> <small>${b.autor || 'Desconocido'}</small>
+            </div>
+        `).join('');
+    }
+    resultsDiv.classList.remove('hidden');
+});
+
+async function selectBookForLoan(isbn, titulo) {
+    document.getElementById('loan-book-search').value = titulo;
+    document.getElementById('loan-book-results').classList.add('hidden');
+    document.getElementById('loan-ejemplar').value = '';
+    
+    showLoader(true);
+    try {
+        const response = await fetch(`${API_URL()}/ejemplares/libro/${isbn}`);
+        if (response.ok) {
+            const ejemplares = await response.json();
+            const disponible = ejemplares.find(e => e.estado === 'DISPONIBLE');
+            if (disponible) {
+                document.getElementById('loan-ejemplar').value = disponible.id;
+                alert(`¡Ejemplar ID #${disponible.id} seleccionado automáticamente!`);
+            } else {
+                alert('No hay ejemplares disponibles de este libro en este momento.');
+            }
+        }
+    } catch (error) {
+        alert('Error verificando ejemplares.');
+    } finally {
+        showLoader(false);
+    }
+}
+
+// Close autocomplete on outside click
+document.addEventListener('click', (e) => {
+    if(!e.target.closest('#loan-book-search') && !e.target.closest('#loan-book-results')) {
+        const r = document.getElementById('loan-book-results');
+        if(r) r.classList.add('hidden');
+    }
+});
 
 // Return Book
 async function returnBook(prestamoId) {
