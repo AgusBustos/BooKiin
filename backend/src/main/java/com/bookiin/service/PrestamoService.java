@@ -29,7 +29,13 @@ public class PrestamoService {
     @Transactional
     public Prestamo registrarPrestamo(String socioDni, Long ejemplarId, int diasPrestamo) {
         Socio socio = socioService.buscarPorDni(socioDni)
-                .orElseThrow(() -> new RuntimeException("Socio no encontrado"));
+                .orElseGet(() -> {
+                    Socio nuevo = new Socio();
+                    nuevo.setDni(socioDni);
+                    nuevo.setNombre("Socio " + socioDni);
+                    nuevo.setApellido("Desconocido");
+                    return socioService.registrarSocio(nuevo);
+                });
                 
         Ejemplar ejemplar = ejemplarService.buscarPorId(ejemplarId)
                 .orElseThrow(() -> new RuntimeException("Ejemplar no encontrado"));
