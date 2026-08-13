@@ -61,6 +61,8 @@ function navTo(targetView) {
         loadDashboardStats();
     } else if (targetView === 'inventory') {
         loadInventory();
+    } else if (targetView === 'loans') {
+        loadActiveLoans();
     }
 }
 
@@ -210,6 +212,7 @@ document.getElementById('loan-form').addEventListener('submit', async (e) => {
             msgDiv.classList.remove('hidden');
             document.getElementById('loan-form').reset();
             loadDashboardStats();
+            loadActiveLoans(); // Refresh list
         } else {
             msgDiv.className = 'msg error';
             msgDiv.innerText = 'Error al registrar el préstamo';
@@ -224,6 +227,67 @@ document.getElementById('loan-form').addEventListener('submit', async (e) => {
         setTimeout(() => msgDiv.classList.add('hidden'), 3000);
     }
 });
+
+// Load Active Loans
+async function loadActiveLoans() {
+    const listDiv = document.getElementById('active-loans-list');
+    listDiv.innerHTML = '<p>Cargando préstamos...</p>';
+    
+    try {
+        const response = await fetch(`${API_URL()}/prestamos/activos`);
+        if (response.ok) {
+            const prestamos = await response.json();
+            if (prestamos.length === 0) {
+                listDiv.innerHTML = '<p style="color:var(--text-muted)">No hay libros prestados actualmente.</p>';
+                return;
+            }
+            
+            listDiv.innerHTML = '';
+            prestamos.forEach(p => {
+                const card = document.createElement('div');
+                card.style = 'background: var(--card-bg); padding: 1rem; border-radius: 0.75rem; display: flex; justify-content: space-between; align-items: center; border: 1px solid var(--glass-border);';
+                
+                const title = p.ejemplar?.libro?.titulo || 'Libro Desconocido';
+                const vto = new Date(p.fechaVencimiento).toLocaleDateString();
+                const isOverdue = new Date(p.fechaVencimiento) < new Date();
+                const colorVto = isOverdue ? 'color: var(--error); font-weight: bold;' : 'color: var(--text-muted);';
+
+                card.innerHTML = `
+                    <div style="flex: 1; overflow: hidden;">
+                        <h4 style="margin:0; font-size: 1rem; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">${title}</h4>
+                        <p style="margin:0; font-size: 0.85rem; color: var(--text-muted);">Socio DNI: <strong>${p.socio?.dni}</strong></p>
+                        <p style="margin:0; font-size: 0.8rem; ${colorVto}">Vence: ${vto}</p>
+                    </div>
+                    <button class="primary-btn" style="width:auto; padding: 0.5rem; background: var(--success);" onclick="returnBook(${p.id})">Devolver</button>
+                `;
+                listDiv.appendChild(card);
+            });
+        }
+    } catch (error) {
+        listDiv.innerHTML = '<p style="color:var(--error)">Error cargando préstamos.</p>';
+    }
+}
+
+// Return Book
+async function returnBook(prestamoId) {
+    if(!confirm('¿Confirmas la devolución de este libro hoy?')) return;
+    
+    showLoader(true);
+    try {
+        const response = await fetch(`${API_URL()}/prestamos/${prestamoId}/devolver`, { method: 'POST' });
+        if (response.ok) {
+            alert('Libro devuelto correctamente.');
+            loadActiveLoans();
+            loadDashboardStats();
+        } else {
+            alert('Error al devolver el libro.');
+        }
+    } catch (error) {
+        alert('Error de conexión.');
+    } finally {
+        showLoader(false);
+    }
+}
 
 // Load Inventory (CRUD List)
 async function loadInventory() {
@@ -253,9 +317,12 @@ async function loadInventory() {
                     <div style="flex: 1; overflow: hidden;">
                         <h4 style="margin:0; font-size: 1rem; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">${libro.titulo || 'Sin título'}</h4>
                         <p style="margin:0; font-size: 0.8rem; color: #64748b;">${libro.autor || 'Autor desconocido'}</p>
-                        <p style="margin:0; font-size: 0.75rem; color: #94a3b8; font-family: monospace;">ISBN: ${libro.isbn} | Estantería: <strong style="color:#0f172a">${libro.estanteria || 'N/A'}</strong></p>
+                        <p style="margin:0; font-size: 0.75rem; color: #94a3b8; font-family: monospace;">ISBN: ${libro.isbn} | Estantería: <strong style="color:var(--text-main)">${libro.estanteria || 'N/A'}</strong></p>
                     </div>
-                    <button class="primary-btn" style="width:auto; padding: 0.5rem 1rem;" onclick="editBook('${libro.isbn}')">Editar</button>
+                    <div style="display:flex; flex-direction:column; gap:0.5rem;">
+                        <button class="primary-btn" style="width:auto; padding: 0.4rem 0.8rem; font-size:0.85rem;" onclick="editBook('${libro.isbn}')">Editar</button>
+                        <button class="icon-btn" style="width:auto; padding: 0.4rem 0.8rem; font-size:0.85rem; background:var(--bg-color); border:1px solid var(--glass-border); color:var(--text-main); border-radius:8px;" onclick="showHistory('${libro.isbn}')">Historial</button>
+                    </div>
                 `;
                 listDiv.appendChild(card);
             });
@@ -302,6 +369,43 @@ async function fetchBookInfoFromApi(isbn) {
         alert('Error al cargar datos del libro.');
     } finally {
         showLoader(false);
+    }
+}
+
+// Show Book History
+async function showHistory(isbn) {
+    const listDiv = document.getElementById('history-list');
+    listDiv.innerHTML = '<p>Cargando historial...</p>';
+    document.getElementById('history-modal').showModal();
+    
+    try {
+        const response = await fetch(`${API_URL()}/prestamos/libro/${isbn}`);
+        if (response.ok) {
+            const prestamos = await response.json();
+            if (prestamos.length === 0) {
+                listDiv.innerHTML = '<p style="color:var(--text-muted)">Este libro nunca ha sido prestado.</p>';
+                return;
+            }
+            
+            listDiv.innerHTML = '';
+            prestamos.forEach(p => {
+                const isReturned = p.estado === 'DEVUELTO';
+                const color = isReturned ? 'var(--success)' : 'var(--error)';
+                const retDate = p.fechaDevolucion ? new Date(p.fechaDevolucion).toLocaleDateString() : 'Pendiente';
+                
+                listDiv.innerHTML += `
+                    <div style="background:var(--bg-color); padding: 0.75rem; border-radius: 8px; font-size: 0.85rem; border: 1px solid var(--glass-border);">
+                        <p style="margin:0; margin-bottom: 0.25rem;">Socio DNI: <strong>${p.socio?.dni}</strong></p>
+                        <div style="display:flex; justify-content:space-between; color:var(--text-muted);">
+                            <span>Retiro: ${new Date(p.fechaRetiro).toLocaleDateString()}</span>
+                            <span>Devuelto: <strong style="color:${color}">${retDate}</strong></span>
+                        </div>
+                    </div>
+                `;
+            });
+        }
+    } catch (error) {
+        listDiv.innerHTML = '<p style="color:var(--error)">Error al cargar el historial.</p>';
     }
 }
 

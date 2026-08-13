@@ -126,19 +126,27 @@
         <!-- View: Loans -->
         <section id="view-loans" class="view">
             <div class="card-glass">
-                <h2>Préstamos</h2>
-                <form id="loan-form">
+                <h2>Registrar Préstamo</h2>
+                <p>Asigna un libro a un socio.</p>
+                <form id="loan-form" class="mt-4">
                     <div class="form-group">
                         <label for="loan-dni">DNI del Socio</label>
-                        <input type="text" id="loan-dni" placeholder="Ej: 12345678" required>
+                        <input type="number" id="loan-dni" required>
                     </div>
                     <div class="form-group">
                         <label for="loan-ejemplar">ID del Ejemplar</label>
-                        <input type="number" id="loan-ejemplar" placeholder="Ej: 1" required>
+                        <input type="number" id="loan-ejemplar" required>
                     </div>
-                    <button type="submit" class="primary-btn">Registrar Préstamo</button>
+                    <button type="submit" class="primary-btn mt-2">Prestar Libro</button>
+                    <div id="loan-msg" class="hidden mt-2"></div>
                 </form>
-                <div id="loan-msg" class="msg hidden"></div>
+            </div>
+
+            <div class="card-glass mt-4">
+                <h2>Libros Prestados (Activos)</h2>
+                <div id="active-loans-list" class="mt-4" style="display:flex; flex-direction:column; gap:1rem;">
+                    <!-- Préstamos activos se cargarán aquí -->
+                </div>
             </div>
         </section>
 
@@ -189,6 +197,17 @@
             <span>Ajustes</span>
         </button>
     </nav>
+
+    <!-- Modal de Historial -->
+    <dialog id="history-modal" style="margin: auto; padding: 1.5rem; border-radius: 12px; border: 1px solid var(--glass-border); background: var(--card-bg); color: var(--text-main); backdrop-filter: blur(10px); max-width: 90%; width: 400px; max-height: 80vh; overflow-y: auto;">
+        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom: 1rem;">
+            <h3 style="margin:0;">Historial del Libro</h3>
+            <button onclick="document.getElementById('history-modal').close()" style="background:none; border:none; color:var(--text-main); font-size:1.5rem; cursor:pointer;">&times;</button>
+        </div>
+        <div id="history-list" style="display:flex; flex-direction:column; gap:0.75rem;">
+            <!-- Historial se carga aquí -->
+        </div>
+    </dialog>
 
     <!-- Overlay Loader -->
     <div id="loader" class="loader-overlay hidden">

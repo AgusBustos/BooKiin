@@ -10,4 +10,5 @@ import java.util.List;
 public interface PrestamoRepository extends JpaRepository<Prestamo, Long> {
     List<Prestamo> findBySocioDniAndEstado(String dni, EstadoPrestamo estado);
     List<Prestamo> findByEstado(EstadoPrestamo estado);
+    List<Prestamo> findByEjemplar_Libro_IsbnOrderByFechaRetiroDesc(String isbn);
 }

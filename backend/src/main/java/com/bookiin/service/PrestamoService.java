@@ -68,4 +68,8 @@ public class PrestamoService {
     public List<Prestamo> listarPrestamosActivos() {
         return prestamoRepository.findByEstado(EstadoPrestamo.ACTIVO);
     }
+
+    public List<Prestamo> listarHistorialPorLibro(String isbn) {
+        return prestamoRepository.findByEjemplar_Libro_IsbnOrderByFechaRetiroDesc(isbn);
+    }
 }

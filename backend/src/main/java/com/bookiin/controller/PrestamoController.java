@@ -36,4 +36,9 @@ public class PrestamoController {
     public ResponseEntity<List<Prestamo>> listarActivos() {
         return ResponseEntity.ok(prestamoService.listarPrestamosActivos());
     }
+
+    @GetMapping("/libro/{isbn}")
+    public ResponseEntity<List<Prestamo>> listarHistorialPorLibro(@PathVariable String isbn) {
+        return ResponseEntity.ok(prestamoService.listarHistorialPorLibro(isbn));
+    }
 }
