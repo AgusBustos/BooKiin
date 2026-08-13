@@ -22,6 +22,7 @@ public class OpenLibraryResponse {
         private String title;
         private List<Author> authors;
         private List<Publisher> publishers;
+        private List<Subject> subjects;
         private Cover cover;
 
         public String getTitle() { return title; }
@@ -30,6 +31,8 @@ public class OpenLibraryResponse {
         public void setAuthors(List<Author> authors) { this.authors = authors; }
         public List<Publisher> getPublishers() { return publishers; }
         public void setPublishers(List<Publisher> publishers) { this.publishers = publishers; }
+        public List<Subject> getSubjects() { return subjects; }
+        public void setSubjects(List<Subject> subjects) { this.subjects = subjects; }
         public Cover getCover() { return cover; }
         public void setCover(Cover cover) { this.cover = cover; }
     }
@@ -41,6 +44,12 @@ public class OpenLibraryResponse {
     }
 
     public static class Publisher {
+        private String name;
+        public String getName() { return name; }
+        public void setName(String name) { this.name = name; }
+    }
+
+    public static class Subject {
         private String name;
         public String getName() { return name; }
         public void setName(String name) { this.name = name; }

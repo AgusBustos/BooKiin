@@ -29,9 +29,17 @@ public class GoogleBooksService {
                 if (info.getAuthors() != null && !info.getAuthors().isEmpty()) {
                     libro.setAutor(String.join(", ", info.getAuthors()));
                 }
-                libro.setEditorial(info.getPublisher());
-                if (info.getImageLinks() != null) {
-                    libro.setUrlPortada(info.getImageLinks().getThumbnail());
+                if (info.getPublisher() != null) {
+                    libro.setEditorial(info.getPublisher());
+                }
+
+                if (info.getCategories() != null && !info.getCategories().isEmpty()) {
+                    libro.setCategoria(String.join(", ", info.getCategories()));
+                }
+
+                if (info.getImageLinks() != null && info.getImageLinks().getThumbnail() != null) {
+                    // Replace http with https for better security
+                    libro.setUrlPortada(info.getImageLinks().getThumbnail().replace("http:", "https:"));
                 }
                 return Optional.of(libro);
             }

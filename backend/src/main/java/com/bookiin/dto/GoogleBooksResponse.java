@@ -29,6 +29,7 @@ public class GoogleBooksResponse {
         private String title;
         private List<String> authors;
         private String publisher;
+        private List<String> categories;
         private ImageLinks imageLinks;
 
         // Getters and Setters
@@ -38,6 +39,8 @@ public class GoogleBooksResponse {
         public void setAuthors(List<String> authors) { this.authors = authors; }
         public String getPublisher() { return publisher; }
         public void setPublisher(String publisher) { this.publisher = publisher; }
+        public List<String> getCategories() { return categories; }
+        public void setCategories(List<String> categories) { this.categories = categories; }
         public ImageLinks getImageLinks() { return imageLinks; }
         public void setImageLinks(ImageLinks imageLinks) { this.imageLinks = imageLinks; }
     }

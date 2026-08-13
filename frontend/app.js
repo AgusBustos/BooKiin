@@ -74,6 +74,8 @@ async function fetchBookInfo(isbn) {
     const titleInput = document.getElementById('book-title');
     const authorInput = document.getElementById('book-author');
     const publisherInput = document.getElementById('book-publisher');
+    const categoryInput = document.getElementById('book-category');
+    const shelfInput = document.getElementById('book-shelf');
     const urlInput = document.getElementById('book-url');
     
     isbnInput.value = isbn;
@@ -86,12 +88,16 @@ async function fetchBookInfo(isbn) {
             titleInput.value = data.titulo || '';
             authorInput.value = data.autor || '';
             publisherInput.value = data.editorial || '';
+            categoryInput.value = data.categoria || '';
+            shelfInput.value = data.estanteria || '';
             urlInput.value = data.urlPortada || '';
         } else {
             // Not found, clear fields for manual entry
             titleInput.value = '';
             authorInput.value = '';
             publisherInput.value = '';
+            categoryInput.value = '';
+            shelfInput.value = '';
             urlInput.value = '';
             alert('Libro no encontrado en Google Books. Puedes ingresar los datos manualmente.');
         }
@@ -113,6 +119,8 @@ document.getElementById('book-form').addEventListener('submit', async (e) => {
         titulo: document.getElementById('book-title').value,
         autor: document.getElementById('book-author').value,
         editorial: document.getElementById('book-publisher').value,
+        categoria: document.getElementById('book-category').value,
+        estanteria: document.getElementById('book-shelf').value,
         urlPortada: document.getElementById('book-url').value
     };
 
@@ -217,7 +225,7 @@ async function loadInventory() {
                     <div style="flex: 1; overflow: hidden;">
                         <h4 style="margin:0; font-size: 1rem; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">${libro.titulo || 'Sin título'}</h4>
                         <p style="margin:0; font-size: 0.8rem; color: #64748b;">${libro.autor || 'Autor desconocido'}</p>
-                        <p style="margin:0; font-size: 0.75rem; color: #94a3b8; font-family: monospace;">ISBN: ${libro.isbn}</p>
+                        <p style="margin:0; font-size: 0.75rem; color: #94a3b8; font-family: monospace;">ISBN: ${libro.isbn} | Estantería: <strong style="color:#0f172a">${libro.estanteria || 'N/A'}</strong></p>
                     </div>
                     <button class="primary-btn" style="width:auto; padding: 0.5rem 1rem;" onclick="editBook('${libro.isbn}')">Editar</button>
                 `;
@@ -257,6 +265,8 @@ async function fetchBookInfoFromApi(isbn) {
             document.getElementById('book-title').value = data.titulo || '';
             document.getElementById('book-author').value = data.autor || '';
             document.getElementById('book-publisher').value = data.editorial || '';
+            document.getElementById('book-category').value = data.categoria || '';
+            document.getElementById('book-shelf').value = data.estanteria || '';
             document.getElementById('book-url').value = data.urlPortada || '';
             document.getElementById('scan-result').classList.remove('hidden');
         }

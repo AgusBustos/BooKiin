@@ -27,4 +27,10 @@ public class Libro {
 
     @Column(name = "url_portada", length = 1000)
     private String urlPortada;
+
+    @Column(name = "categoria")
+    private String categoria;
+
+    @Column(name = "estanteria")
+    private String estanteria;
 }

@@ -37,6 +37,13 @@ public class OpenLibraryService {
                             .map(OpenLibraryResponse.Publisher::getName)
                             .collect(Collectors.joining(", ")));
                 }
+
+                if (data.getSubjects() != null && !data.getSubjects().isEmpty()) {
+                    libro.setCategoria(data.getSubjects().stream()
+                            .map(OpenLibraryResponse.Subject::getName)
+                            .limit(3) // Limit to 3 to avoid super long strings
+                            .collect(Collectors.joining(", ")));
+                }
                 
                 if (data.getCover() != null) {
                     if (data.getCover().getMedium() != null) {
