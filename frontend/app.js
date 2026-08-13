@@ -163,6 +163,20 @@ document.getElementById('book-form').addEventListener('submit', async (e) => {
         });
         
         if (response.ok) {
+            // Asegurar que al menos un Ejemplar (copia física) exista para este libro para que se pueda prestar
+            try {
+                const ejRes = await fetch(`${API_URL()}/ejemplares/libro/${libro.isbn}`);
+                if (ejRes.ok) {
+                    const ejemplares = await ejRes.json();
+                    if (ejemplares.length === 0) {
+                        // Crear un ejemplar por defecto
+                        await fetch(`${API_URL()}/ejemplares?isbn=${libro.isbn}&estanteria=${encodeURIComponent(libro.estanteria || '')}&estante=`, { method: 'POST' });
+                    }
+                }
+            } catch(e) {
+                console.warn("Fallo al crear ejemplar por defecto");
+            }
+
             alert('Libro guardado con éxito!');
             document.getElementById('book-form').reset();
             document.getElementById('scan-result').classList.add('hidden');
