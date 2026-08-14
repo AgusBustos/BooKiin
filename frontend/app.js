@@ -64,6 +64,8 @@ function navTo(targetView) {
     } else if (targetView === 'loans') {
         loadActiveLoans();
         initLoanSearch();
+    } else if (targetView === 'socios') {
+        loadSocios();
     }
 }
 
@@ -494,12 +496,9 @@ async function showHistory(isbn) {
     }
 }
 
+// ===== Dashboard Stats =====
 async function loadDashboardStats() {
     try {
-        // In a real app, you would have a /stats endpoint. 
-        // Here we'll just fetch lists to count for demonstration purposes, 
-        // but in production we'd want dedicated count endpoints.
-        
         const [librosRes, sociosRes, prestamosRes] = await Promise.all([
             fetch(`${API_URL()}/libros`),
             fetch(`${API_URL()}/socios`),
@@ -549,3 +548,63 @@ document.addEventListener('DOMContentLoaded', () => {
     loadDashboardStats();
     navTo('home');
 });
+
+// ===== Socios =====
+async function loadSocios() {
+    const listDiv = document.getElementById('socios-list');
+    listDiv.innerHTML = '<div style="text-align:center; padding:1rem;"><div class="spinner"></div></div>';
+    
+    try {
+        const response = await fetch(`${API_URL()}/socios`);
+        if (response.ok) {
+            const socios = await response.json();
+            if (socios.length === 0) {
+                listDiv.innerHTML = '<p style="color:var(--text-muted)">No hay socios registrados.</p>';
+                return;
+            }
+            
+            listDiv.innerHTML = socios.map(s => `
+                <div class="card-glass" style="display:flex; justify-content:space-between; align-items:center; padding: 1rem;">
+                    <div>
+                        <h4 style="margin:0 0 0.25rem 0;">${s.nombre} ${s.apellido}</h4>
+                        <p style="margin:0; font-size:0.85rem; color:var(--text-muted)">DNI: ${s.dni} | Contacto: ${s.emailTelefono || 'No registrado'}</p>
+                    </div>
+                    <button class="icon-btn" onclick="editSocio('${s.dni}', '${s.nombre}', '${s.apellido}', '${s.emailTelefono || ''}')" style="background:var(--primary); color:#fff; border-radius:50%; width:36px; height:36px; display:flex; align-items:center; justify-content:center; border:none; cursor:pointer;">
+                        <i class="ph ph-pencil-simple"></i>
+                    </button>
+                </div>
+            `).join('');
+        }
+    } catch (error) {
+        listDiv.innerHTML = '<p style="color:var(--error)">Error cargando socios.</p>';
+    }
+}
+
+async function editSocio(dni, nombre, apellido, emailTelefono) {
+    const nuevoNombre = prompt("Nombre del Socio:", nombre);
+    if (nuevoNombre === null) return;
+    const nuevoApellido = prompt("Apellido:", apellido);
+    if (nuevoApellido === null) return;
+    const nuevoContacto = prompt("Email o Teléfono:", emailTelefono);
+    if (nuevoContacto === null) return;
+    
+    showLoader(true);
+    try {
+        const response = await fetch(`${API_URL()}/socios/${dni}`, {
+            method: 'PUT',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ nombre: nuevoNombre, apellido: nuevoApellido, emailTelefono: nuevoContacto })
+        });
+        
+        if (response.ok) {
+            loadSocios();
+            loadDashboardStats();
+        } else {
+            alert('No se pudo actualizar el socio.');
+        }
+    } catch(e) {
+        alert('Error de conexión al actualizar socio.');
+    } finally {
+        showLoader(false);
+    }
+}

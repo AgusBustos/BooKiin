@@ -35,4 +35,14 @@ public class SocioController {
                 .map(ResponseEntity::ok)
                 .orElse(ResponseEntity.notFound().build());
     }
+
+    @PutMapping("/{dni}")
+    public ResponseEntity<Socio> actualizarSocio(@PathVariable String dni, @RequestBody Socio socioUpdates) {
+        return socioService.buscarPorDni(dni).map(socioExistente -> {
+            socioExistente.setNombre(socioUpdates.getNombre());
+            socioExistente.setApellido(socioUpdates.getApellido());
+            socioExistente.setEmailTelefono(socioUpdates.getEmailTelefono());
+            return ResponseEntity.ok(socioService.registrarSocio(socioExistente));
+        }).orElse(ResponseEntity.notFound().build());
+    }
 }
