@@ -27,35 +27,6 @@ const categoryDict = {
     'Psychology': 'Psicología'
 };
 
-const API_URL = () => {
-    let url = document.getElementById('api-url').value;
-    if (!url) {
-        url = `http://${window.location.hostname}:8080/api`;
-        document.getElementById('api-url').value = url;
-    }
-    return url;
-};
-let html5QrcodeScanner = null;
-
-// Category Dictionary (EN -> ES)
-const categoryDict = {
-    'Fiction': 'Ficción',
-    'Juvenile Fiction': 'Ficción Juvenil',
-    'Young Adult Fiction': 'Ficción para Jóvenes',
-    'Fantasy': 'Fantasía',
-    'Science Fiction': 'Ciencia Ficción',
-    'History': 'Historia',
-    'Biography & Autobiography': 'Biografía',
-    'Science': 'Ciencia',
-    'Education': 'Educación',
-    'Computers': 'Computación',
-    'Business & Economics': 'Negocios',
-    'Art': 'Arte',
-    'Religion': 'Religión',
-    'Philosophy': 'Filosofía',
-    'Psychology': 'Psicología'
-};
-
 function translateCategory(catStr) {
     if(!catStr) return '';
     let result = catStr;
@@ -732,3 +703,4 @@ function onScanDniSuccess(decodedText, decodedResult) {
         navTo('socios');
     }
 }
+
