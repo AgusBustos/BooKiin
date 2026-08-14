@@ -171,9 +171,31 @@
         <section id="view-socios" class="view">
             <div class="card-glass">
                 <h2>Directorio de Socios</h2>
-                <p>Alumnos y profesores registrados en la biblioteca.</p>
+                <p>Administra los miembros de la biblioteca.</p>
+                <div class="actions-grid mt-4">
+                    <button class="action-btn" onclick="openSocioModal()">
+                        <i class="ph ph-user-plus"></i>
+                        <span>Manual</span>
+                    </button>
+                    <button class="action-btn" onclick="navTo('scan-dni')">
+                        <i class="ph ph-camera"></i>
+                        <span>Escanear DNI</span>
+                    </button>
+                </div>
                 <div id="socios-list" class="mt-4" style="display:flex; flex-direction:column; gap:1rem;">
                     <!-- Los socios se cargarán aquí -->
+                </div>
+            </div>
+        </section>
+
+        <!-- View: Escanear DNI -->
+        <section id="view-scan-dni" class="view">
+            <div class="card-glass">
+                <h2>Escanear DNI Argentino</h2>
+                <p>Enfoca el código PDF417 (el de rayas más grande) del DNI.</p>
+                <div id="reader-dni" width="100%"></div>
+                <div class="mt-4" style="text-align: center;">
+                    <button class="primary-btn" onclick="navTo('socios')" style="background:var(--card-bg); color:var(--text-main); border:1px solid var(--glass-border);">Volver a Socios</button>
                 </div>
             </div>
         </section>
@@ -227,6 +249,33 @@
         <div id="history-list" style="display:flex; flex-direction:column; gap:0.75rem;">
             <!-- Historial se carga aquí -->
         </div>
+    </dialog>
+
+    <!-- Modal de Socio (Agregar/Editar) -->
+    <dialog id="socio-modal" style="margin: auto; padding: 1.5rem; border-radius: 12px; border: 1px solid var(--glass-border); background: var(--card-bg); color: var(--text-main); backdrop-filter: blur(10px); max-width: 90%; width: 400px;">
+        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom: 1rem;">
+            <h3 style="margin:0;" id="socio-modal-title">Registrar Socio</h3>
+            <button onclick="document.getElementById('socio-modal').close()" style="background:none; border:none; color:var(--text-main); font-size:1.5rem; cursor:pointer;">&times;</button>
+        </div>
+        <form id="socio-form">
+            <div class="form-group">
+                <label for="socio-dni">DNI</label>
+                <input type="number" id="socio-dni" required>
+            </div>
+            <div class="form-group">
+                <label for="socio-nombre">Nombres</label>
+                <input type="text" id="socio-nombre" required>
+            </div>
+            <div class="form-group">
+                <label for="socio-apellido">Apellidos</label>
+                <input type="text" id="socio-apellido" required>
+            </div>
+            <div class="form-group">
+                <label for="socio-contacto">Email o Teléfono</label>
+                <input type="text" id="socio-contacto">
+            </div>
+            <button type="submit" class="primary-btn mt-4">Guardar Socio</button>
+        </form>
     </dialog>
 
     <!-- Overlay Loader -->

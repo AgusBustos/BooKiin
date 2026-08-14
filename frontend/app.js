@@ -27,6 +27,35 @@ const categoryDict = {
     'Psychology': 'Psicología'
 };
 
+const API_URL = () => {
+    let url = document.getElementById('api-url').value;
+    if (!url) {
+        url = `http://${window.location.hostname}:8080/api`;
+        document.getElementById('api-url').value = url;
+    }
+    return url;
+};
+let html5QrcodeScanner = null;
+
+// Category Dictionary (EN -> ES)
+const categoryDict = {
+    'Fiction': 'Ficción',
+    'Juvenile Fiction': 'Ficción Juvenil',
+    'Young Adult Fiction': 'Ficción para Jóvenes',
+    'Fantasy': 'Fantasía',
+    'Science Fiction': 'Ciencia Ficción',
+    'History': 'Historia',
+    'Biography & Autobiography': 'Biografía',
+    'Science': 'Ciencia',
+    'Education': 'Educación',
+    'Computers': 'Computación',
+    'Business & Economics': 'Negocios',
+    'Art': 'Arte',
+    'Religion': 'Religión',
+    'Philosophy': 'Filosofía',
+    'Psychology': 'Psicología'
+};
+
 function translateCategory(catStr) {
     if(!catStr) return '';
     let result = catStr;
@@ -38,10 +67,14 @@ function translateCategory(catStr) {
 
 // Navigation
 function navTo(targetView) {
-    // Stop scanner if leaving scan view
+    // Stop scanners if leaving their views
     if (targetView !== 'scan' && html5QrcodeScanner) {
         html5QrcodeScanner.clear().catch(error => console.error("Failed to clear scanner", error));
         html5QrcodeScanner = null;
+    }
+    if (targetView !== 'scan-dni' && typeof html5QrcodeScannerDni !== 'undefined' && html5QrcodeScannerDni) {
+        html5QrcodeScannerDni.clear().catch(e => console.error(e));
+        html5QrcodeScannerDni = null;
     }
 
     // Update Nav Icons
@@ -57,6 +90,8 @@ function navTo(targetView) {
     // Initialize specifics for views
     if (targetView === 'scan') {
         initScanner();
+    } else if (targetView === 'scan-dni') {
+        initDniScanner();
     } else if (targetView === 'home') {
         loadDashboardStats();
     } else if (targetView === 'inventory') {
@@ -569,9 +604,14 @@ async function loadSocios() {
                         <h4 style="margin:0 0 0.25rem 0;">${s.nombre} ${s.apellido}</h4>
                         <p style="margin:0; font-size:0.85rem; color:var(--text-muted)">DNI: ${s.dni} | Contacto: ${s.emailTelefono || 'No registrado'}</p>
                     </div>
-                    <button class="icon-btn" onclick="editSocio('${s.dni}', '${s.nombre}', '${s.apellido}', '${s.emailTelefono || ''}')" style="background:var(--primary); color:#fff; border-radius:50%; width:36px; height:36px; display:flex; align-items:center; justify-content:center; border:none; cursor:pointer;">
-                        <i class="ph ph-pencil-simple"></i>
-                    </button>
+                    <div style="display:flex; gap:0.5rem;">
+                        <button class="icon-btn" onclick="openSocioModal('${s.dni}', '${s.nombre}', '${s.apellido}', '${s.emailTelefono || ''}')" style="background:var(--primary); color:#fff; border-radius:50%; width:36px; height:36px; display:flex; align-items:center; justify-content:center; border:none; cursor:pointer;">
+                            <i class="ph ph-pencil-simple"></i>
+                        </button>
+                        <button class="icon-btn" onclick="deleteSocio('${s.dni}')" style="background:var(--error); color:#fff; border-radius:50%; width:36px; height:36px; display:flex; align-items:center; justify-content:center; border:none; cursor:pointer;">
+                            <i class="ph ph-trash"></i>
+                        </button>
+                    </div>
                 </div>
             `).join('');
         }
@@ -580,31 +620,115 @@ async function loadSocios() {
     }
 }
 
-async function editSocio(dni, nombre, apellido, emailTelefono) {
-    const nuevoNombre = prompt("Nombre del Socio:", nombre);
-    if (nuevoNombre === null) return;
-    const nuevoApellido = prompt("Apellido:", apellido);
-    if (nuevoApellido === null) return;
-    const nuevoContacto = prompt("Email o Teléfono:", emailTelefono);
-    if (nuevoContacto === null) return;
+let isEditingSocio = false;
+
+function openSocioModal(dni = '', nombre = '', apellido = '', contacto = '') {
+    isEditingSocio = dni !== '';
+    document.getElementById('socio-modal-title').innerText = isEditingSocio ? 'Editar Socio' : 'Registrar Socio';
+    document.getElementById('socio-dni').value = dni;
+    document.getElementById('socio-dni').readOnly = isEditingSocio;
+    document.getElementById('socio-nombre').value = nombre;
+    document.getElementById('socio-apellido').value = apellido;
+    document.getElementById('socio-contacto').value = contacto;
+    document.getElementById('socio-modal').showModal();
+}
+
+document.getElementById('socio-form').addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const dni = document.getElementById('socio-dni').value;
+    const socio = {
+        dni: dni,
+        nombre: document.getElementById('socio-nombre').value,
+        apellido: document.getElementById('socio-apellido').value,
+        emailTelefono: document.getElementById('socio-contacto').value
+    };
+
+    showLoader(true);
+    try {
+        const url = isEditingSocio ? `${API_URL()}/socios/${dni}` : `${API_URL()}/socios`;
+        const method = isEditingSocio ? 'PUT' : 'POST';
+        const response = await fetch(url, {
+            method: method,
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(socio)
+        });
+
+        if (response.ok) {
+            document.getElementById('socio-modal').close();
+            loadSocios();
+            loadDashboardStats();
+        } else {
+            alert('Error al guardar el socio.');
+        }
+    } catch(err) {
+        alert('Error de conexión.');
+    } finally {
+        showLoader(false);
+    }
+});
+
+async function deleteSocio(dni) {
+    if (!confirm('¿Estás seguro de eliminar a este socio? No debe tener préstamos registrados.')) return;
     
     showLoader(true);
     try {
-        const response = await fetch(`${API_URL()}/socios/${dni}`, {
-            method: 'PUT',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ nombre: nuevoNombre, apellido: nuevoApellido, emailTelefono: nuevoContacto })
-        });
-        
+        const response = await fetch(`${API_URL()}/socios/${dni}`, { method: 'DELETE' });
         if (response.ok) {
             loadSocios();
             loadDashboardStats();
         } else {
-            alert('No se pudo actualizar el socio.');
+            const err = await response.text();
+            alert(err || 'Error al eliminar. Revisa si tiene préstamos.');
         }
     } catch(e) {
-        alert('Error de conexión al actualizar socio.');
+        alert('Error de conexión.');
     } finally {
         showLoader(false);
+    }
+}
+
+// ===== DNI Scanner =====
+let html5QrcodeScannerDni = null;
+
+function initDniScanner() {
+    // Attempt to use PDF_417 if supported by the library build (value is usually 10 in enum)
+    const formatSupport = typeof Html5QrcodeSupportedFormats !== 'undefined' && Html5QrcodeSupportedFormats.PDF_417 
+        ? [Html5QrcodeSupportedFormats.PDF_417] 
+        : [10]; // Fallback if enum not fully exposed
+
+    html5QrcodeScannerDni = new Html5QrcodeScanner(
+        "reader-dni",
+        { fps: 10, qrbox: {width: 400, height: 150}, formatsToSupport: formatSupport },
+        /* verbose= */ false
+    );
+    html5QrcodeScannerDni.render(onScanDniSuccess, onScanFailure);
+}
+
+function onScanDniSuccess(decodedText, decodedResult) {
+    html5QrcodeScannerDni.clear();
+    if('vibrate' in navigator) navigator.vibrate(100);
+    
+    // Argentine DNI parser (PDF417)
+    // Standard format: Trámite@Apellidos@Nombres@Sexo@DNI@Ejemplar@...
+    const parts = decodedText.split('@');
+    if (parts.length >= 7) {
+        let apellido = parts[1];
+        let nombres = parts[2];
+        let dni = parts[4];
+        
+        // Some formats (older) might have different index, but this is the most common for new DNIs.
+        // Fallback checks just in case:
+        if (!dni || isNaN(dni)) {
+            // Check if it's in another index
+            const possibleDni = parts.find(p => p.length >= 7 && p.length <= 8 && !isNaN(p));
+            if (possibleDni) dni = possibleDni;
+        }
+
+        // Navigate to Socios and open modal prefilled
+        navTo('socios');
+        openSocioModal(dni, nombres, apellido, '');
+    } else {
+        alert("Formato de DNI no reconocido. Por favor, intente de nuevo o agréguelo manualmente.");
+        navTo('socios');
     }
 }

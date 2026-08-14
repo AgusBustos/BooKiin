@@ -45,4 +45,17 @@ public class SocioController {
             return ResponseEntity.ok(socioService.registrarSocio(socioExistente));
         }).orElse(ResponseEntity.notFound().build());
     }
+
+    @DeleteMapping("/{dni}")
+    public ResponseEntity<?> eliminarSocio(@PathVariable String dni) {
+        try {
+            if (socioService.buscarPorDni(dni).isEmpty()) {
+                return ResponseEntity.notFound().build();
+            }
+            socioService.eliminarSocio(dni);
+            return ResponseEntity.ok().build();
+        } catch (Exception e) {
+            return ResponseEntity.badRequest().body("No se puede eliminar el socio porque tiene historial de préstamos.");
+        }
+    }
 }

@@ -28,4 +28,8 @@ public class SocioService {
     public Optional<Socio> buscarPorDni(String dni) {
         return socioRepository.findById(dni);
     }
+
+    public void eliminarSocio(String dni) {
+        socioRepository.deleteById(dni);
+    }
 }
