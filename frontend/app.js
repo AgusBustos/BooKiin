@@ -662,14 +662,11 @@ async function deleteSocio(dni) {
 let html5QrcodeScannerDni = null;
 
 function initDniScanner() {
-    // Attempt to use PDF_417 if supported by the library build (value is usually 10 in enum)
-    const formatSupport = typeof Html5QrcodeSupportedFormats !== 'undefined' && Html5QrcodeSupportedFormats.PDF_417 
-        ? [Html5QrcodeSupportedFormats.PDF_417] 
-        : [10]; // Fallback if enum not fully exposed
-
+    // Para DNI (PDF417) en móviles, es mejor no restringir el qrbox ni el formato para que 
+    // la cámara use toda la resolución posible y el ZXing detecte automáticamente el PDF417.
     html5QrcodeScannerDni = new Html5QrcodeScanner(
         "reader-dni",
-        { fps: 10, qrbox: {width: 400, height: 150}, formatsToSupport: formatSupport },
+        { fps: 10 },
         /* verbose= */ false
     );
     html5QrcodeScannerDni.render(onScanDniSuccess, onScanFailure);
